@@ -12,6 +12,7 @@ import { config } from '../config'
 // Импорт маршрутов
 import auth from './routes/auth'
 import rides from './routes/rides'
+import admin from './routes/admin'
 
 // Импорт middleware
 import { authMiddleware } from './utils/middleware'
@@ -26,6 +27,7 @@ app.use('/static/*', serveStatic({ root: './public' }))
 
 // API Routes без авторизации
 app.route('/api/auth', auth)
+app.route('/api/admin', admin)
 
 // API Routes с авторизацией
 app.use('/api/rides/*', authMiddleware)
