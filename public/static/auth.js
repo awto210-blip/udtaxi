@@ -41,6 +41,24 @@ function renderAuthPage() {
             </button>
           </div>
 
+          ${!isLoginMode ? `
+            <!-- Быстрая регистрация -->
+            <div class="bg-green-500 bg-opacity-10 border border-green-500 rounded-lg p-4 mb-4">
+              <p class="text-sm text-green-400 mb-2">⚡ Быстрая регистрация</p>
+              <button type="button" onclick="quickRegister('passenger')" 
+                class="w-full mb-2 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm">
+                🚕 Зарегистрироваться как пассажир
+              </button>
+              <button type="button" onclick="quickRegister('driver')" 
+                class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm">
+                🚗 Зарегистрироваться как водитель
+              </button>
+              <p class="text-xs text-gray-400 mt-2">Данные заполнятся автоматически</p>
+            </div>
+            
+            <div class="text-center text-gray-400 text-sm my-4">или заполните вручную</div>
+          ` : ''}
+
           <form id="auth-form" onsubmit="handleSubmit(event)" class="space-y-4">
             ${!isLoginMode ? `
               <!-- Имя (только для регистрации) -->
@@ -141,6 +159,52 @@ function renderAuthPage() {
 function switchMode(login) {
   isLoginMode = login
   renderAuthPage()
+}
+
+// Быстрая регистрация с автозаполнением
+async function quickRegister(role) {
+  const timestamp = Date.now()
+  const randomNum = Math.floor(Math.random() * 1000)
+  
+  const userData = {
+    passenger: {
+      name: `Пассажир ${randomNum}`,
+      email: `passenger${timestamp}@test.ru`,
+      phone: `+7900${randomNum}${String(timestamp).slice(-4)}`,
+      role: 'passenger'
+    },
+    driver: {
+      name: `Водитель ${randomNum}`,
+      email: `driver${timestamp}@test.ru`,
+      phone: `+7901${randomNum}${String(timestamp).slice(-4)}`,
+      role: 'driver'
+    }
+  }
+  
+  const data = userData[role]
+  const password = '123456' // Простой пароль для теста
+  
+  try {
+    const response = await axios.post('/api/auth/register', {
+      email: data.email,
+      password: password,
+      name: data.name,
+      phone: data.phone,
+      role: data.role
+    })
+    
+    if (response.data.success) {
+      localStorage.setItem('taxi_token', response.data.token)
+      localStorage.setItem('taxi_user', JSON.stringify(response.data.user))
+      
+      alert(`✅ Успешная регистрация!\n\nEmail: ${data.email}\nПароль: ${password}\n\nСохраните эти данные!`)
+      window.location.href = '/'
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message
+    alert(`Ошибка: ${errorMessage}`)
+    console.error('Quick register error:', error)
+  }
 }
 
 async function handleSubmit(event) {
